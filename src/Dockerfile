@@ -8,14 +8,17 @@ ENV PHP_VERSION=7.1 \
     ORACLE_HOME=/opt/app-root/oracle/instantclient_12_2 \
     LD_LIBRARY_PATH=/opt/app-root/oracle/instantclient_12_2 
 
-LABEL io.openshift.tags="builder,${NAME},${NAME}${PHP_VER_SHORT},rh-${NAME}${PHP_VER_SHORT}" 
+LABEL io.k8s.display-name="Apache 2.4 with PHP ${PHP_VERSION} and OCI8" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.tags="builder,${NAME},${NAME}${PHP_VER_SHORT},rh-${NAME}${PHP_VER_SHORT}" \
+      name="rhscl/${NAME}-${PHP_VER_SHORT}-rhel7" 
 
 COPY ./oracle /opt/app-root/oracle/
 
 RUN yum-config-manager --disable rhel-7-server-htb-rpms && \
     yum install -y yum-utils && \
     prepare-yum-repositories rhel-server-rhscl-7-rpms && \
-    INSTALL_PKGS="rh-php71-php-devel" && \
+    INSTALL_PKGS="rh-php71-php-devel libaio" && \
     yum install -y --setopt=tsflags=nodocs $INSTALL_PKGS && \
     rpm -V $INSTALL_PKGS && \
     yum clean all -y && \
@@ -31,7 +34,8 @@ RUN yum-config-manager --disable rhel-7-server-htb-rpms && \
     pecl bundle oci8 && \
     cd oci8 && phpize && ./configure --with-oci8=instantclient,$ORACLE_HOME && \
     make install && \
-    mkdir /opt/app-root/php.d 
+    mkdir /opt/app-root/php.d && \
+    cp /opt/app-root/oracle/oci8/modules/* /opt/rh/rh-php71/root/usr/lib64/php/modules/
 
 COPY oci8.ini /etc/opt/rh/rh-php71/php.d
     
