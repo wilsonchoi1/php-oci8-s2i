@@ -1,4 +1,4 @@
-FROM rhscl/php-71-rhel7
+FROM registry.access.redhat.com/rhscl/php-71-rhel7
 
 USER root
 
